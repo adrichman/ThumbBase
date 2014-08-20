@@ -1,6 +1,7 @@
 (function(){
 
   'use strict';
+  
   var DB;
   var util = require('./helpers.js');
 
