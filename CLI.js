@@ -2,6 +2,10 @@
 
   'use strict';
 
+  ////////////////////////////////////////
+  // CLI for interacting with ThumbBase //
+  ////////////////////////////////////////
+
   var RL        = require('readline');
   var ThumbBase = require('./ThumbBase.js');
   var thumbBase = new ThumbBase();
