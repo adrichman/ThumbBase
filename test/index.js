@@ -1,37 +1,54 @@
 (function(){
 
   'use strict';
+  
+  var expect       = require('chai').expect;
+  var spawn        = require('child_process').spawn;
+  var Q            = require('q');
+  var ThumbBase    = require('../ThumbBase.js');
+  var promiseQueue = [];
+  var stdout       = "";
+  var stderr       = "";
+  var ps;
 
-  var expect    = require('chai').expect;
-  var spawn     = require('child_process').spawn;
-  var Q         = require('q');
-  var ThumbBase = require('../ThumbBase.js');
-
-  var spawnTest = function(arg){
+  var writeTo = function(arg){
     var deferred = Q.defer();
-    var ps = spawn('/usr/local/bin/node', ['/Users/Port-O-Bucket/Desktop/Development/thumbBase/index.js', arg]);
-    ps.stdout.setEncoding('utf8');
-    
-    var stdout = "";
+    stdout = "";
+    stderr = "";
 
+    ps.stdin.write(arg+'\n');
+    promiseQueue.push(deferred);
+    return promiseQueue[promiseQueue.length - 1].promise;
+  };
+
+  var spawnTest = function(){
+    ps = spawn('/usr/local/bin/node', [process.cwd() + '/index.js']);
+    ps.stdout.setEncoding('utf8');
     ps.stdout.on('data', function (data) {
       var out = data.split('\n')[0];
       stdout += out;
+      if (data !== '> '){
+        setTimeout(function(){
+          promiseQueue.shift().resolve(out);
+        },100);
+      }
     });  
     
     ps.stderr.on('data', function (data) {
-      deferred.reject(data);
+      var out = data.toString().split('\n')[0];
+      stderr += out;
+      setTimeout(function(){
+        promiseQueue.shift().reject(out);
+      },100);
     });
     
     ps.on('close', function (code) {
-      console.log('process closed with code:', code);
-      deferred.resolve(stdout);
+      promiseQueue.shift().resolve(code);
     });
-    
-    return deferred.promise;
+    return ps;
   };
 
-  describe('thumbBase', function(){
+  describe('APP', function(){
     describe('Classes', function(){
       
       var thumbBase, valueCountTable;
@@ -238,25 +255,85 @@
         });
       });
     });
+    describe('integration tests', function(){
+      describe('validations', function(){
+        var ps;
+        beforeEach(function(){
+          ps = spawnTest();
+          stdout = "";
+          stderr = "";
+        });
 
-    describe('validations', function(){
+        it('should not accept invalid commands', function(done){
+          writeTo('WRONG')
+          .then(function(){},function(){
+            expect(stderr).to.include('is not a valid command');
+            writeTo('q');
+            done();
+          });
+        });
 
-      xit('should bark at you if you don\'t feed it what it wants', function(done){
-        spawnTest('WRONG')
-        .then(function(stdout){
-          expect(stdout).to.include('is not valid input');
-          done();
+        it('should not accept incomplete parameters', function(done){
+          writeTo('SET')
+          .then(function(){},function(){
+            expect(stderr).to.include('Valid keys and values are required');
+            writeTo('q');
+            done();
+          });
         });
       });
 
-      xit('should be silent for valid arguments', function(done){
-        spawnTest('SET')
-        .then(function(stdout){
-          expect(stdout).not.to.be.ok;
-          done();
+      describe('script', function(){
+        
+        before(function(){
+          ps = spawnTest();
+        });
+
+        beforeEach(function(){
+          stdout = "";
+          stderr = "";
+        });
+        
+        after(function(){
+          ps.connected && writeTo('q');
+        });
+        
+        it('should accept valid requests', function(done){
+          writeTo('SET a 10').then(function(){
+          writeTo('SET b 10').then(function(){
+          writeTo('NUMEQUALTO 10').then(function(res){
+            expect(res).to.equal('2');
+            done();
+          });
+        });});});
+
+        it('should handle multiple transactions', function(done){
+          writeTo('BEGIN').then(function(){
+          writeTo('SET a 30').then(function(){
+          writeTo('BEGIN').then(function(){
+          writeTo('SET a 40').then(function(){
+          writeTo('GET a').then(function(res){
+            expect(res).to.equal('40');
+          }).then(function(){
+          writeTo('ROLLBACK').then(function(){
+          writeTo('NUMEQUALTO 40').then(function(res){
+            expect(res).to.equal('0');
+          writeTo('GET a').then(function(res){
+            expect(res).to.equal('30');
+          writeTo('NUMEQUALTO 30').then(function(res){
+            expect(res).to.equal('1');
+            done();
+          });});});});});});});});});
+        });
+        
+        it('should quit gracefully', function(done){
+          writeTo('q')
+          .then(function(res){
+            expect(res).to.equal(0);
+            done();
+          });
         });
       });
     });
   });
-  
 }());
