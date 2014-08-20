@@ -4,7 +4,8 @@
   "description": "In-memory Simple Database",
   "main": "index.js",
   "scripts": {
-    "test": "mocha -w test"
+    "start": "node index.js",
+    "test": "mocha test"
   },
   "repository": {
     "type": "git",
