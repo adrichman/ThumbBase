@@ -12,34 +12,41 @@
   var ps;
 
   var writeTo = function(arg){
+    // Method to write to STDIN 
     var deferred = Q.defer();
+    
+    // Clear past responses
     stdout = "";
     stderr = "";
 
+    // write to STDIN
     ps.stdin.write(arg+'\n');
+
+    // provide a new promise for the expected response
     promiseQueue.push(deferred);
+
     return promiseQueue[promiseQueue.length - 1].promise;
   };
 
   var spawnTest = function(){
+    // Run the app in a child process
     ps = spawn('/usr/local/bin/node', [process.cwd() + '/index.js']);
     ps.stdout.setEncoding('utf8');
+    
+    // Register listeners on STDOUT and STDERR
+    // Resolve with the oldest promise upon response
     ps.stdout.on('data', function (data) {
       var out = data.split('\n')[0];
       stdout += out;
       if (data !== '> '){
-        setTimeout(function(){
-          promiseQueue.shift().resolve(out);
-        },100);
+        promiseQueue.shift().resolve(out);
       }
     });  
     
     ps.stderr.on('data', function (data) {
       var out = data.toString().split('\n')[0];
       stderr += out;
-      setTimeout(function(){
-        promiseQueue.shift().reject(out);
-      },100);
+      promiseQueue.shift().reject(out);
     });
     
     ps.on('close', function (code) {
