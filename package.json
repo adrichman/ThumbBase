@@ -1,0 +1,21 @@
+{
+  "name": "thumbBase",
+  "version": "0.1.0",
+  "description": "In-memory Simple Database",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha -w test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "thumbBase.git"
+  },
+  "author": "Adam D. Richman",
+  "license": "ISC",
+  "devDependencies": {
+    "chai": "~1.9.1",
+    "mocha": "~1.21.4",
+    "q": "~1.0.1",
+    "mocha-jshint": "0.0.9"
+  }
+}
