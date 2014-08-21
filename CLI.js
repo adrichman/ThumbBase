@@ -48,7 +48,7 @@
         } 
 
         catch (err) {
-          // log error message to STDOUT
+          // log error message to STDERR
           console.error(err.message);
         }
       }

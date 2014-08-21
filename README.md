@@ -28,6 +28,42 @@ Thumbase maintains a stack for a transaction block that becomes active on the ``
 
 Thumbase handles nested transaction blocks. A new block is instantiated on every ```BEGIN``` command. This allows for a ```ROLLBACK``` to a previous block that is in-progress and not yet committed.
 
+### API:
+The command line interface will prompt a user for a command. Simply use any of the valid commands, as indicated below:
+```
+> SET a 10
+
+> GET a
+  10
+ 
+> SET a 20
+> NUMEQUALTO 10
+  0
+ 
+> NUMEQUALTO 20
+  1
+ 
+> BEGIN
+ 
+> SET a 30
+ 
+> GET a
+  30
+ 
+> ROLLBACK
+ 
+> GET a
+  20
+ 
+> unset a
+ 
+> COMMIT
+ 
+> GET a
+  null   
+```
+
+
 ### Contact:
 ```
 Adam D. Richman 
