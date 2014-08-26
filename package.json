@@ -13,11 +13,10 @@
   },
   "author": "Adam D. Richman",
   "license": "ISC",
-  "devDependencies": {
+  "dependencies": {
     "chai": "~1.9.1",
     "mocha": "~1.21.4",
     "q": "~1.0.1",
-    "mocha-jshint": "0.0.9",
-    "commander": "~2.3.0"
+    "mocha-jshint": "0.0.9"  
   }
 }
